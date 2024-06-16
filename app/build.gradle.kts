@@ -4,11 +4,11 @@ plugins {
 }
 
 android {
-    namespace = "com.example.ics342app"
+    namespace = "com.example.assignment1"
     compileSdk = 34
 
     defaultConfig {
-        applicationId = "com.example.ics342app"
+        applicationId = "com.example.assignment1"
         minSdk = 24
         targetSdk = 34
         versionCode = 1
@@ -23,7 +23,10 @@ android {
     buildTypes {
         release {
             isMinifyEnabled = false
-            proguardFiles(getDefaultProguardFile("proguard-android-optimize.txt"), "proguard-rules.pro")
+            proguardFiles(
+                getDefaultProguardFile("proguard-android-optimize.txt"),
+                "proguard-rules.pro"
+            )
         }
     }
     compileOptions {
@@ -55,7 +58,7 @@ dependencies {
     implementation(libs.androidx.ui)
     implementation(libs.androidx.ui.graphics)
     implementation(libs.androidx.ui.tooling.preview)
-    implementation(libs.androidx.material3)
+    implementation(libs.androidx.material3.android)
     testImplementation(libs.junit)
     androidTestImplementation(libs.androidx.junit)
     androidTestImplementation(libs.androidx.espresso.core)

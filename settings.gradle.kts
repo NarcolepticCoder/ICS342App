@@ -19,5 +19,6 @@ dependencyResolutionManagement {
     }
 }
 
-rootProject.name = "ICS342App"
+rootProject.name = "Assignment1"
 include(":app")
+ 
