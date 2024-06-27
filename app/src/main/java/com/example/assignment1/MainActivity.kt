@@ -227,13 +227,10 @@ fun PrintList(item: String) {
             horizontalArrangement = Arrangement.Center,
             verticalAlignment = Alignment.CenterVertically
 
-
-
         ){
 
         Text(text = item,
             color = Color.Black,modifier = Modifier.padding(horizontal = 12.dp).weight(1f))
-
 
         Checkbox(
 
