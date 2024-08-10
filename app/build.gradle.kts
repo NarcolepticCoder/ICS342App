@@ -78,6 +78,8 @@ dependencies {
     implementation(libs.androidx.navigation.runtime.ktx)
     implementation(libs.androidx.navigation.compose)
     implementation(libs.androidx.runtime.livedata)
+    implementation(libs.androidx.junit.ktx)
+    implementation(libs.androidx.ui.test.junit4.android)
 
     // These are the test dependencies you will need to test the view models and coroutines
     // After updating your libs.versions.toml, update your build.gradle with these dependencies.
@@ -98,5 +100,6 @@ dependencies {
     debugImplementation(libs.androidx.ui.test.manifest)
     implementation(libs.moshi.kotlin)
     implementation(libs.converter.moshi)
+
 
 }

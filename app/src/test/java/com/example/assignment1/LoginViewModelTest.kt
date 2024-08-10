@@ -1,5 +1,4 @@
 package com.example.assignment1
-import android.content.SharedPreferences
 import io.mockk.coEvery
 import io.mockk.coVerify
 import io.mockk.every
@@ -50,6 +49,21 @@ class LoginViewModelTest{
 
 
         coVerify { api.loginUser("48fcacf7-46e1-4285-9d47-76472c1673d1", UserInfoRequest(null,"username", "password1")) }
+    }
+    @Test
+    fun `test clearError sets errorLiveData to null`() {
+        val api = mockk<InterfaceApi>(relaxed = true)
+        val viewModel = LoginViewModel(null,api)
+        viewModel.clearError()
+        assert(viewModel.errorLiveData.value == null)
+    }
+    @Test
+    fun `test clearError fails to set errorLiveData to null`() {
+        val api = mockk<InterfaceApi>(relaxed = true)
+        val viewModel = LoginViewModel(null,api)
+        viewModel.clearError()
+        viewModel.errorLiveData.value = "error"
+        assert(viewModel.errorLiveData.value != null)
     }
     @Test
     fun testLoginUserWithIncorrectCredentials() = runTest {

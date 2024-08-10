@@ -399,7 +399,7 @@ class TodoListViewModel(private val er: SharedPrefs?, private val api: Interface
         data class Error(val message: String) : ViewState()
         data object Success : ViewState()
     }
-    private fun clearError() {
+    fun clearError() {
         _errorLiveData.value = null
     }
 }
