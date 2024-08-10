@@ -24,10 +24,10 @@ class MainActivity : ComponentActivity() {
             val sharedPref = SharedPrefs(this)
 
 
-            val vm2 = RegisterViewModel(sharedPref)
-            val vm = LoginViewModel(sharedPref)
+            val vm2 = RegisterViewModel(sharedPref,RetrofitClient.interfaceApi)
+            val vm = LoginViewModel(sharedPref,RetrofitClient.interfaceApi)
 
-            val vm3 = TodoListViewModel(sharedPref)
+            val vm3 = TodoListViewModel(sharedPref,RetrofitClient.interfaceApi)
 
             val navController = rememberNavController()
             val errorMessage2 by vm2.errorLiveData.observeAsState()

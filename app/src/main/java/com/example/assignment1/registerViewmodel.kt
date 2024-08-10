@@ -25,10 +25,12 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
+import androidx.lifecycle.LiveData
 import androidx.lifecycle.MutableLiveData
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import androidx.navigation.NavController
+import com.example.assignment1.LoginViewModel.ViewState
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
@@ -36,34 +38,44 @@ import kotlinx.coroutines.launch
 import retrofit2.HttpException
 
 
-class RegisterViewModel(er: SharedPrefs): ViewModel() {
+class RegisterViewModel(er: SharedPrefs?, private val api: InterfaceApi): ViewModel() {
 
-    private val _userdata = MutableStateFlow<NewUser?>(null)
-    val userdata : StateFlow<NewUser?> = _userdata.asStateFlow()
-    private val editor: SharedPreferences.Editor = er.prefs.edit()
-
+    private val _userdata = MutableLiveData<NewUser?>()
+    val userdata : MutableLiveData<NewUser?> = _userdata
+    private val editor: SharedPreferences.Editor? = er?.prefs?.edit()
+    private val _viewState = MutableLiveData<ViewState>()
+    val viewState: LiveData<ViewState> get() = _viewState
 
     private val _errorLiveData = MutableLiveData<String?>()
     val errorLiveData: MutableLiveData<String?> = _errorLiveData
 
-    private fun registerUser(user:UserInfoRequest, navController: NavController){
+    fun registerUser(user:UserInfoRequest, navController: NavController?){
 
         viewModelScope.launch {
+            _viewState.postValue(ViewState.Loading)
             try {
 
-                _userdata.value = RetrofitClient.interfaceApi.createUser("48fcacf7-46e1-4285-9d47-76472c1673d1",user)
-
-                editor.apply {
+                val result = api.createUser("48fcacf7-46e1-4285-9d47-76472c1673d1",user)
+                _viewState.postValue(ViewState.Success)
+                _userdata.postValue(result)
+                editor?.apply {
 
                     putString("user_id", _userdata.value!!.user_id)
                     putString("token", _userdata.value!!.token)
                     apply()
                 }
 
-                navController.navigate("ScreenThree")
+                if (navController != null) {
+                    navController.navigate("ScreenThree")
+                }
 
 
-            } catch (e: HttpException) {
+            }catch (ex: Exception) {
+                ex.printStackTrace()
+                _viewState.postValue(ViewState.Error("Failed"))
+            }
+
+            catch (e: HttpException) {
 
                 // Handle HTTP errors
                 _errorLiveData.value = e.response()?.errorBody()?.string()
@@ -154,6 +166,11 @@ class RegisterViewModel(er: SharedPrefs): ViewModel() {
             }
         )
 
+    }
+    sealed class ViewState {
+        data object Loading : ViewState()
+        data class Error(val message: String) : ViewState()
+        data object Success : ViewState()
     }
     fun clearError() {
         _errorLiveData.value = null

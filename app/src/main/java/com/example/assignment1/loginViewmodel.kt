@@ -25,6 +25,7 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
+import androidx.lifecycle.LiveData
 import androidx.lifecycle.MutableLiveData
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
@@ -33,33 +34,44 @@ import kotlinx.coroutines.launch
 import retrofit2.HttpException
 
 
-class LoginViewModel(er: SharedPrefs) : ViewModel() {
-    private val _userdata = MutableLiveData<NewUser?>(null)
-    val userdata : MutableLiveData<NewUser?> = _userdata
+class LoginViewModel(er: SharedPrefs?, private val api: InterfaceApi?) : ViewModel() {
+    private val _userdata = MutableLiveData<NewUser?>()
+    val userdata : MutableLiveData<NewUser?> get() = _userdata
     private val _errorLiveData = MutableLiveData<String?>()
     val errorLiveData: MutableLiveData<String?> = _errorLiveData
-    private val editor: SharedPreferences.Editor = er.prefs.edit()
+    private val editor: SharedPreferences.Editor? = er?.prefs?.edit()
+    private val _viewState = MutableLiveData<ViewState>()
+    val viewState: LiveData<ViewState> get() = _viewState
 
-    private fun loginUser(user:UserInfoRequest, navController: NavController){
+    fun loginUser(user:UserInfoRequest, navController: NavController?){
 
         viewModelScope.launch {
+            _viewState.postValue(ViewState.Loading)
             try {
 
-                _userdata.value = RetrofitClient.interfaceApi.loginUser("48fcacf7-46e1-4285-9d47-76472c1673d1",user)
-                editor.apply {
+                val result = api?.loginUser("48fcacf7-46e1-4285-9d47-76472c1673d1",user)
+                _viewState.postValue(ViewState.Success)
+                _userdata.postValue(result)
+
+                editor?.apply {
 
                     putString("user_id", _userdata.value!!.user_id)
                     putString("token", _userdata.value!!.token)
                     apply()
                 }
 
-                navController.navigate("ScreenThree")
+                if (navController != null) {
+                    navController.navigate("ScreenThree")
+                }
 
-
-
-            } catch (e: HttpException) {
+            } catch (ex: Exception) {
+                ex.printStackTrace()
+                _viewState.postValue(ViewState.Error("Failed"))
+            }
+            catch (e: HttpException) {
 
                 // Handle HTTP errors
+
                 _errorLiveData.value = e.response()?.errorBody()?.string()
 
 
@@ -74,7 +86,7 @@ class LoginViewModel(er: SharedPrefs) : ViewModel() {
 
     @SuppressLint("StateFlowValueCalledInComposition")
     @Composable
-    fun Start(onButtonClicked: () -> Unit,navController: NavController) {
+    fun Start(onButtonClicked: () -> Unit, navController: NavController) {
         var email by remember { mutableStateOf("") }
         var password by remember { mutableStateOf("") }
         val newuser = UserInfoRequest(null,email, password)
@@ -126,6 +138,11 @@ class LoginViewModel(er: SharedPrefs) : ViewModel() {
             }
         )
 
+    }
+    sealed class ViewState {
+        data object Loading : ViewState()
+        data class Error(val message: String) : ViewState()
+        data object Success : ViewState()
     }
     fun clearError() {
         _errorLiveData.value = null

@@ -48,6 +48,7 @@ import androidx.lifecycle.MutableLiveData
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import androidx.navigation.NavController
+import com.example.assignment1.LoginViewModel.ViewState
 import com.example.assignment1.ui.theme.Purple80
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
@@ -56,43 +57,54 @@ import kotlinx.coroutines.launch
 import retrofit2.HttpException
 
 
-class TodoListViewModel(private val er: SharedPrefs) : ViewModel(){
+class TodoListViewModel(private val er: SharedPrefs?, private val api: InterfaceApi) : ViewModel(){
 
-    private val e = er.prefs.getString("user_id","error")
-    private val e3 = er.prefs.getString("id","error")
+    private val e = er?.prefs?.getString("user_id","error")
+    private val e3 = er?.prefs?.getString("id","error")
     private val _usertodos = MutableLiveData<List<TodoResponse>>()
     val usertodos : LiveData<List<TodoResponse>> = _usertodos
-    private val _userdata = MutableStateFlow<Todo?>(null)
-    val userdata : StateFlow<Todo?> = _userdata.asStateFlow()
+    private val _userdata = MutableLiveData<Todo?>(null)
+    val userdata : MutableLiveData<Todo?> = _userdata
     private var _errorLiveData = MutableLiveData<String?>(null)
     val errorLiveData: MutableLiveData<String?> = _errorLiveData
+    private val _viewState = MutableLiveData<com.example.assignment1.TodoListViewModel.ViewState>()
+    val viewState: LiveData<com.example.assignment1.TodoListViewModel.ViewState> get() = _viewState
 
-    private fun createTodo(todo:Todo,e2: String) {
+    fun createTodo(todo:Todo,e2: String) {
 
         viewModelScope.launch {
-
+            _viewState.postValue(com.example.assignment1.TodoListViewModel.ViewState.Loading)
             try {
 
 
-                if (e != null) {
-                    _userdata.value =
-                        RetrofitClient.interfaceApi.createTodos(
-                            e,
+
+                    val result =
+                        api.createTodos(
+                            "0",
                             "Bearer $e2",
                             "48fcacf7-46e1-4285-9d47-76472c1673d1",todo
                         )
-                    er.prefs.edit().apply {
+                    _viewState.postValue(com.example.assignment1.TodoListViewModel.ViewState.Success)
+                    _userdata.postValue(result)
+
+                    er?.prefs?.edit()?.apply {
                         putString("id", _userdata.value!!.id)
                         apply()
                     }
 
 
-                }
 
 
 
 
-            } catch (e: HttpException) {
+
+
+            }
+            catch (ex: Exception) {
+                ex.printStackTrace()
+                _viewState.postValue(com.example.assignment1.TodoListViewModel.ViewState.Error("Failed"))
+            }
+            catch (e: HttpException) {
 
                 // Handle HTTP errors
 
@@ -381,6 +393,11 @@ class TodoListViewModel(private val er: SharedPrefs) : ViewModel(){
             }
         )
 
+    }
+    sealed class ViewState {
+        data object Loading : ViewState()
+        data class Error(val message: String) : ViewState()
+        data object Success : ViewState()
     }
     private fun clearError() {
         _errorLiveData.value = null
