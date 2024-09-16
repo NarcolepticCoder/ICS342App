@@ -1,4 +1,4 @@
-package com.example.ics342app
+package com.example.assignment1
 
 import org.junit.Test
 
